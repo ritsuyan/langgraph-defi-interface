@@ -95,13 +95,19 @@
                 console.log('Response data:', data); // 调试用
 
                 if (data.success) {
-                    document.getElementById('quoteDetails').textContent = data.result.aiResponse.value;
-                    if (data.result.quote?.value?.id) {
-                        currentQuoteId = data.result.quote.value.id;
+                    // Extract quote details and ID from the response
+                    const aiResponse = data.result?.aiResponse?.value || 'No quote details available';
+                    const quoteId = data.result?.quote?.id || data.result?.quote?.value?.id;
+                    
+                    document.getElementById('quoteDetails').textContent = aiResponse;
+                    if (quoteId) {
+                        currentQuoteId = quoteId;
                         document.getElementById('confirmBtn').disabled = false;
                         document.getElementById('cancelBtn').disabled = false;
                     } else {
                         console.log('No quote ID in response:', data.result);
+                        document.getElementById('confirmBtn').disabled = true;
+                        document.getElementById('cancelBtn').disabled = true;
                     }
                 } else {
                     throw new Error(data.error || 'Failed to get quote');
