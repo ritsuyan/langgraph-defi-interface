@@ -67,6 +67,8 @@
         async function getQuote() {
             try {
                 const message = document.getElementById('message').value;
+                console.log('Getting quote for message:', message);
+                
                 if (!message.trim()) {
                     throw new Error('Please enter a message');
                 }
@@ -87,15 +89,19 @@
                     })
                 },{ noProxy: true });
                 
+                console.log('Quote API response status:', response.status);
+                
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const data = await response.json();
-                console.log('Response data:', data); // 调试用
+                console.log('Full quote response data:', data);
 
                 if (data.success) {
-                    // Extract quote details and ID from the response
+                    console.log('Quote details:', data.result.aiResponse.value);
+                    console.log('Quote ID:', data.result.quote?.id || data.result.quote?.value?.id);
+                    
                     const aiResponse = data.result?.aiResponse?.value || 'No quote details available';
                     const quoteId = data.result?.quote?.id || data.result?.quote?.value?.id;
                     
@@ -104,16 +110,18 @@
                         currentQuoteId = quoteId;
                         document.getElementById('confirmBtn').disabled = false;
                         document.getElementById('cancelBtn').disabled = false;
+                        console.log('Quote ID set:', currentQuoteId);
                     } else {
-                        console.log('No quote ID in response:', data.result);
+                        console.log('No quote ID found in response:', data.result);
                         document.getElementById('confirmBtn').disabled = true;
                         document.getElementById('cancelBtn').disabled = true;
                     }
                 } else {
+                    console.error('Quote failed:', data.error || 'Failed to get quote');
                     throw new Error(data.error || 'Failed to get quote');
                 }
             } catch (error) {
-                console.error('Error getting quote:', error);
+                console.error('Error in getQuote:', error);
                 document.getElementById('quoteDetails').textContent = 'Error: ' + error.message;
                 document.getElementById('confirmBtn').disabled = true;
                 document.getElementById('cancelBtn').disabled = true;
@@ -124,8 +132,11 @@
         async function confirmSwap() {
             try {
                 if (!currentQuoteId) {
+                    console.error('No quote ID available for swap');
                     throw new Error('No quote available');
                 }
+
+                console.log('Confirming swap with quote ID:', currentQuoteId);
 
                 const response = await fetch('https://langgraph-defai.vercel.app/api/confirm-swap', {
                     method: 'POST',
@@ -133,10 +144,22 @@
                     body: JSON.stringify({ quoteId: currentQuoteId })
                 });
                 
+                console.log('Confirm swap response status:', response.status);
+                
                 const data = await response.json();
-                document.getElementById('result').textContent = 
-                    data.success ? 'Swap successful!' : 'Swap failed: ' + data.error;
+                console.log('Confirm swap response data:', data);
+                
+                if (data.success && data.transactionSignature) {
+                    const solscanLink = `https://solscan.io/tx/${data.transactionSignature}`;
+                    document.getElementById('result').innerHTML = 
+                        'Swap successful! <a href="' + solscanLink + '" target="_blank">View on Solscan</a>';
+                    console.log('Transaction signature:', data.transactionSignature);
+                } else {
+                    console.error('Swap failed:', data.error || 'Unknown error');
+                    document.getElementById('result').textContent = 'Swap failed: ' + (data.error || 'Unknown error');
+                }
             } catch (error) {
+                console.error('Error in confirmSwap:', error);
                 document.getElementById('result').textContent = 'Error: ' + error.message;
             }
         }
