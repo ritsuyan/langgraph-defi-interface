@@ -62,7 +62,7 @@
     </div>
 
     <script>
-        let currentQuoteId = null;
+        let currentThreadId = null;
 
         async function getQuote() {
             try {
@@ -98,19 +98,18 @@
 
                 if (data.success) {
                     console.log('Quote details:', data.result.aiResponse.value);
-                    console.log('Quote ID:', data.result.quote?.id || data.result.quote?.value?.id);
+                    console.log('Thread ID:', data.threadId);
                     
                     const aiResponse = data.result?.aiResponse?.value || 'No quote details available';
-                    const quoteId = data.result?.quote?.id || data.result?.quote?.value?.id;
                     
                     document.getElementById('quoteDetails').textContent = aiResponse;
-                    if (quoteId) {
-                        currentQuoteId = quoteId;
+                    if (data.threadId) {
+                        currentThreadId = data.threadId;
                         document.getElementById('confirmBtn').disabled = false;
                         document.getElementById('cancelBtn').disabled = false;
-                        console.log('Quote ID set:', currentQuoteId);
+                        console.log('Thread ID set:', currentThreadId);
                     } else {
-                        console.log('No quote ID found in response:', data.result);
+                        console.log('No thread ID found in response:', data);
                         document.getElementById('cancelBtn').disabled = true;
                     }
                 } else {
@@ -121,29 +120,29 @@
                 console.error('Error in getQuote:', error);
                 document.getElementById('quoteDetails').textContent = 'Error: ' + error.message;
                 document.getElementById('cancelBtn').disabled = true;
-                currentQuoteId = null;
+                currentThreadId = null;
             }
         }
 
         async function confirmSwap() {
             try {
-                if (!currentQuoteId) {
-                    console.error('No quote ID available for swap');
+                if (!currentThreadId) {
+                    console.error('No thread ID available for swap');
                     throw new Error('No quote available');
                 }
 
-                console.log('Confirming swap with quote ID:', currentQuoteId);
+                console.log('Confirming swap with thread ID:', currentThreadId);
 
-                const response = await fetch('https://langgraph-defai.vercel.app/api/confirm-swap', {
+                const response = await fetch('https://langgraph-defai.vercel.app/api/confirm', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ quoteId: currentQuoteId })
+                    body: JSON.stringify({ workflowId: currentThreadId })
                 });
                 
-                console.log('Confirm swap response status:', response.status);
+                console.log('Confirm response status:', response.status);
                 
                 const data = await response.json();
-                console.log('Confirm swap response data:', data);
+                console.log('Confirm response data:', data);
                 
                 if (data.success && data.transactionSignature) {
                     const solscanLink = `https://solscan.io/tx/${data.transactionSignature}`;
