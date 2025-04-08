@@ -111,7 +111,6 @@
                         console.log('Quote ID set:', currentQuoteId);
                     } else {
                         console.log('No quote ID found in response:', data.result);
-                        document.getElementById('confirmBtn').disabled = true;
                         document.getElementById('cancelBtn').disabled = true;
                     }
                 } else {
@@ -121,7 +120,6 @@
             } catch (error) {
                 console.error('Error in getQuote:', error);
                 document.getElementById('quoteDetails').textContent = 'Error: ' + error.message;
-                document.getElementById('confirmBtn').disabled = true;
                 document.getElementById('cancelBtn').disabled = true;
                 currentQuoteId = null;
             }
