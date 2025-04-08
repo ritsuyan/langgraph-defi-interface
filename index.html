@@ -144,11 +144,11 @@
                 const data = await response.json();
                 console.log('Confirm response data:', data);
                 
-                if (data.success && data.transactionSignature) {
-                    const solscanLink = `https://solscan.io/tx/${data.transactionSignature}`;
+                if (data.status === 'completed' && data.transaction.value) {
+                    const solscanLink = `https://solscan.io/tx/${data.transaction.value}`;
                     document.getElementById('result').innerHTML = 
                         'Swap successful! <a href="' + solscanLink + '" target="_blank">View on Solscan</a>';
-                    console.log('Transaction signature:', data.transactionSignature);
+                    console.log('Transaction signature:', data.transaction.value);
                 } else {
                     console.error('Swap failed:', data.error || 'Unknown error');
                     document.getElementById('result').textContent = 'Swap failed: ' + (data.error || 'Unknown error');
